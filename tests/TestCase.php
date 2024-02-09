@@ -2,8 +2,8 @@
 
 namespace JamesDordoy\HyperTables\Tests;
 
-use Orchestra\Testbench\TestCase as Orchestra;
 use JamesDordoy\HyperTables\HyperTablesServiceProvider;
+use Orchestra\Testbench\TestCase as Orchestra;
 
 class TestCase extends Orchestra
 {

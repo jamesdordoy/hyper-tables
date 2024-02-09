@@ -2,9 +2,9 @@
 
 namespace JamesDordoy\HyperTables;
 
+use JamesDordoy\HyperTables\Commands\HyperTablesMigrateCommand;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
-use JamesDordoy\HyperTables\Commands\HyperTablesMigrateCommand;
 
 class HyperTablesServiceProvider extends PackageServiceProvider
 {
