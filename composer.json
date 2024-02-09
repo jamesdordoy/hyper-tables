@@ -34,13 +34,12 @@
     },
     "autoload": {
         "psr-4": {
-            "James Dordoy\\HyperTables\\": "src/",
-            "James Dordoy\\HyperTables\\Database\\Factories\\": "database/factories/"
+            "JamesDordoy\\HyperTables\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "James Dordoy\\HyperTables\\Tests\\": "tests/",
+            "JamesDordoy\\HyperTables\\Tests\\": "tests/",
             "Workbench\\App\\": "workbench/app/"
         }
     },
@@ -72,10 +71,10 @@
     "extra": {
         "laravel": {
             "providers": [
-                "James Dordoy\\HyperTables\\HyperTablesServiceProvider"
+                "JamesDordoy\\HyperTables\\HyperTablesServiceProvider"
             ],
             "aliases": {
-                "HyperTables": "James Dordoy\\HyperTables\\Facades\\HyperTables"
+                "HyperTables": "JamesDordoy\\HyperTables\\Facades\\HyperTables"
             }
         }
     },

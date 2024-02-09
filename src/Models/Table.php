@@ -18,6 +18,7 @@ abstract class Table
     {
         if (! Schema::hasTable($this->model->getTable())) {
             Schema::create($this->model->getTable(), fn (Blueprint $table) => $this->up($this->table = $table));
+            Schema::table($this->model->getTable(), fn (Blueprint $table) => $this->run($this->table = $table));
         } else {
             Schema::table($this->model->getTable(), fn (Blueprint $table) => $this->run($this->table = $table));
         }
@@ -47,9 +48,14 @@ abstract class Table
 
                 Migration::create([
                     'migration' => $migrationName,
-                    'batch' => $migrations->last()->batch + 1,
+                    'batch' => $migrations->last() ? $migrations->last()->batch + 1 : 1,
                 ]);
             }
         });
+    }
+
+    public function getModel(): Model
+    {
+        return $this->model;
     }
 }

@@ -4,6 +4,7 @@ namespace JamesDordoy\HyperTables\Attributes;
 
 use Attribute;
 use Exception;
+use JamesDordoy\HyperTables\Exceptions\ModelNotHyperTableException;
 use JamesDordoy\HyperTables\Models\Table;
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
@@ -13,7 +14,7 @@ class Migrate
         public string $class
     ) {
         if (! is_subclass_of($this->class, Table::class)) {
-            throw new Exception('blahh');
+            throw new ModelNotHyperTableException($this->class);
         }
     }
 }
