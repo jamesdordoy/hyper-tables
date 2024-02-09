@@ -13,10 +13,8 @@ class HyperTablesMigrateCommand extends Command
     public function handle(): int
     {
         collect(config('hyper-tables.tables'))->each(
-            fn(string $namespace) =>
-                tap(new $namespace, fn($table) =>
-                    $this->comment(sprintf("Run migration on table: %s", $table->getModel()->getTable())
-                )
+            fn (string $namespace) => tap(new $namespace, fn ($table) => $this->comment(sprintf('Run migration on table: %s', $table->getModel()->getTable())
+            )
             )
         );
 

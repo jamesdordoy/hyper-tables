@@ -3,7 +3,6 @@
 namespace JamesDordoy\HyperTables\Attributes;
 
 use Attribute;
-use Exception;
 use JamesDordoy\HyperTables\Exceptions\ModelNotHyperTableException;
 use JamesDordoy\HyperTables\Models\Table;
 
