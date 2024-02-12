@@ -44,7 +44,7 @@ abstract class Table implements FollowsSchema
         $this->migrations = Migration::get();
 
         $class = new ReflectionClass($this);
-        $migrationName = sprintf('%s::%s', $class->name, "create");
+        $migrationName = sprintf('%s::%s', $class->name, 'create');
 
         Migration::create([
             'migration' => $migrationName,
@@ -165,7 +165,7 @@ abstract class Table implements FollowsSchema
     public function isCreated()
     {
         $class = new ReflectionClass(get_called_class());
-        
+
         return $this->hasMigrationRun(sprintf('%s::%s', $class->name, 'create'));
     }
 }

@@ -23,7 +23,7 @@ class HyperTablesMigrateCommand extends Command
                 $outstandingMigrations = $namespace::getOutstandingMigrations();
                 $outstandingMigrations->each(fn (string $migration) => $this->comment(sprintf('Running migration: %s', $migration)));
 
-                if (! $outstandingMigrations->isEmpty() && !$this->migrationsRun) {
+                if (! $outstandingMigrations->isEmpty() && ! $this->migrationsRun) {
                     $this->migrationsRun = true;
                 }
             })
