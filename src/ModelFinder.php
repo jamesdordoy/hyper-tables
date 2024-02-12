@@ -32,7 +32,7 @@ class ModelFinder
             ->map(function (string $class) {
                 try {
                     return new ReflectionClass($class);
-                } catch (Exception|Error) {
+                } catch (Exception|Error $e) {
                     return null;
                 }
             })

@@ -28,7 +28,7 @@ return [
 
 ## Usage
 
-### Note: This package makes use of Laravels migration table to keep track of run migrations. So before attemping to migrate your hyper tables. Please run `php artisan migrate` to create this table. If your happy with Laravel's default users table then you can leave the existing migration to delete it and use HyperTables.
+### Note: This package makes use of Laravel's migration table to keep track of already run migrations. So before attemping to migrate your HyperTables. Please run `php artisan migrate` to create this table. If your happy with Laravel's default users table then you can leave the existing migration or delete it and use a HyperTable.
 
 ```php
 <?php
