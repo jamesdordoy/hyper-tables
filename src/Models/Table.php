@@ -19,7 +19,7 @@ abstract class Table implements FollowsSchema
 
     protected bool $justCreated = false;
 
-    protected $migrations;
+    protected $migrations = null;
 
     public function __construct(protected string $modelClass)
     {
@@ -30,6 +30,8 @@ abstract class Table implements FollowsSchema
 
     public function createOrUpdate()
     {
+        $this->migrations = Migration::get();
+
         if (! $this->isCreated()) {
             $this->create();
         } else {
@@ -40,8 +42,6 @@ abstract class Table implements FollowsSchema
     public function create()
     {
         Schema::create($this->model->getTable(), fn (Blueprint $table) => $this->up($this->table = $table));
-
-        $this->migrations = Migration::get();
 
         $class = new ReflectionClass($this);
         $migrationName = sprintf('%s::%s', $class->name, 'create');
@@ -73,24 +73,22 @@ abstract class Table implements FollowsSchema
 
     public function run(): void
     {
-        // $migrations = Migration::get(); -- Look at caching/storing these on the class as they as going to get loaded more than once....
         $class = new ReflectionClass($this);
         $methods = self::getMigratiableMethods();
 
         if (! $methods->isEmpty()) {
-            $migrations = Migration::get();
 
-            $methods->each(function (ReflectionMethod $method) use ($class, $migrations) {
+            $methods->each(function (ReflectionMethod $method) use ($class) {
 
                 $migrationName = sprintf('%s::%s', $class->name, $method->name);
 
-                if ($migrations->filter(fn (Migration $migration) => $migration->migration === $migrationName)->isEmpty()) {
+                if ($this->migrations->filter(fn (Migration $migration) => $migration->migration === $migrationName)->isEmpty()) {
 
                     $this->{$method->name}();
 
                     Migration::create([
                         'migration' => $migrationName,
-                        'batch' => $migrations->last() ? $migrations->last()->batch + 1 : 1,
+                        'batch' => $this->migrations->last() ? $this->migrations->last()->batch + 1 : 1,
                     ]);
                 }
             });
@@ -113,13 +111,13 @@ abstract class Table implements FollowsSchema
         return $methodNames->diff($migrations->pluck('migration'));
     }
 
-    public function hasMigrationRun($migrationName, $migrations = null)
+    public function hasMigrationRun($migrationName)
     {
-        if (is_null($migrations)) {
-            $migrations = Migration::get();
+        if (is_null($this->migrations)) {
+            $this->migrations = Migration::get();
         }
 
-        return ! $migrations->filter(fn (Migration $migration) => $migration->migration === $migrationName)->isEmpty();
+        return ! $this->migrations->filter(fn (Migration $migration) => $migration->migration === $migrationName)->isEmpty();
     }
 
     public function hasMigrations()
@@ -128,13 +126,12 @@ abstract class Table implements FollowsSchema
         $methods = self::getMigratiableMethods();
 
         if (! $methods->isEmpty()) {
-            $migrations = Migration::get();
 
-            $methods->each(function (ReflectionMethod $method) use ($class, $migrations) {
+            $methods->each(function (ReflectionMethod $method) use ($class) {
 
                 $migrationName = sprintf('%s::%s', $class->name, $method->name);
 
-                if ($migrations->filter(fn (Migration $migration) => $migration->migration === $migrationName)->isEmpty()) {
+                if ($this->migrations->filter(fn (Migration $migration) => $migration->migration === $migrationName)->isEmpty()) {
 
                     return true;
                 }
