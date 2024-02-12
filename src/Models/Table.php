@@ -21,6 +21,8 @@ abstract class Table implements FollowsSchema
 
     protected $migrations = null;
 
+    const FORMAT = '%s::%s';
+
     public function __construct(protected string $modelClass)
     {
         $this->model = resolve($modelClass);
@@ -32,7 +34,7 @@ abstract class Table implements FollowsSchema
     {
         $this->migrations = Migration::get();
 
-        if (! $this->isCreated()) {
+        if (! $this->created()) {
             $this->create();
         } else {
             $this->table();
@@ -76,23 +78,20 @@ abstract class Table implements FollowsSchema
         $class = new ReflectionClass($this);
         $methods = self::getMigratiableMethods();
 
-        if (! $methods->isEmpty()) {
+        $methods->each(function (ReflectionMethod $method) use ($class) {
 
-            $methods->each(function (ReflectionMethod $method) use ($class) {
+            $migrationName = self::formatMigrationName($class->name, $method->name);
 
-                $migrationName = sprintf('%s::%s', $class->name, $method->name);
+            if ($this->migrations->filter(fn (Migration $migration) => $migration->migration === $migrationName)->isEmpty()) {
 
-                if ($this->migrations->filter(fn (Migration $migration) => $migration->migration === $migrationName)->isEmpty()) {
+                $this->{$method->name}();
 
-                    $this->{$method->name}();
-
-                    Migration::create([
-                        'migration' => $migrationName,
-                        'batch' => $this->migrations->last() ? $this->migrations->last()->batch + 1 : 1,
-                    ]);
-                }
-            });
-        }
+                Migration::create([
+                    'migration' => $migrationName,
+                    'batch' => $this->migrations->last() ? $this->migrations->last()->batch + 1 : 1,
+                ]);
+            }
+        });
     }
 
     public function getModel(): Model
@@ -114,20 +113,17 @@ abstract class Table implements FollowsSchema
         $class = new ReflectionClass($this);
         $methods = self::getMigratiableMethods();
 
-        if (! $methods->isEmpty()) {
+        $methods->each(function (ReflectionMethod $method) use ($class) {
 
-            $methods->each(function (ReflectionMethod $method) use ($class) {
+            $migrationName = self::formatMigrationName($class->name, $method->name);
 
-                $migrationName = sprintf('%s::%s', $class->name, $method->name);
+            if ($this->migrations->filter(fn (Migration $migration) => $migration->migration === $migrationName)->isEmpty()) {
 
-                if ($this->migrations->filter(fn (Migration $migration) => $migration->migration === $migrationName)->isEmpty()) {
+                return true;
+            }
+        });
 
-                    return true;
-                }
-            });
-
-            return false;
-        }
+        return false;
     }
 
     public function getJustCreated(): bool
@@ -135,11 +131,11 @@ abstract class Table implements FollowsSchema
         return $this->justCreated;
     }
 
-    public function isCreated()
+    public function created()
     {
         $class = new ReflectionClass(get_called_class());
 
-        return $this->hasMigrationRun(sprintf('%s::%s', $class->name, 'create'));
+        return $this->hasMigrationRun(self::formatMigrationName($class->name));
     }
 
     protected static function getMigratiableMethods()
@@ -161,8 +157,13 @@ abstract class Table implements FollowsSchema
         $methods = self::getMigratiableMethods();
         $migrations = Migration::get();
 
-        $methodNames = $methods->map(fn (ReflectionMethod $method) => sprintf('%s::%s', $class->name, $method->name));
+        $methodNames = $methods->map(fn (ReflectionMethod $method) => self::formatMigrationName($class->name, $method->name));
 
         return $methodNames->diff($migrations->pluck('migration'));
+    }
+
+    protected static function formatMigrationName(string $class, string $method = 'create'): string
+    {
+        return sprintf(self::FORMAT, $class, $method);
     }
 }
