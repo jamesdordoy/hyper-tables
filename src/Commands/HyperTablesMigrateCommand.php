@@ -15,8 +15,8 @@ class HyperTablesMigrateCommand extends Command
     {
         // in this class locally cache the run migration messages and then display them if there are migrations running..
         ModelFinder::all(config('hyper-tables.table_path'))
-            ->map(fn($namespace) => new $namespace)
-            ->map(fn($table) => $this->comment(sprintf('Run migration on table: %s', $table->getModel()->getTable())));
+            ->map(fn ($namespace) => new $namespace)
+            ->map(fn ($table) => $this->comment(sprintf('Run migration on table: %s', $table->getModel()->getTable())));
 
         return self::SUCCESS;
     }

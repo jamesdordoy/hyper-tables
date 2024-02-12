@@ -13,6 +13,7 @@ use ReflectionMethod;
 abstract class Table
 {
     protected $table;
+
     protected $model;
 
     public function __construct(protected string $modelClass)
@@ -39,7 +40,7 @@ abstract class Table
             ->filter(fn (ReflectionMethod $method) => ! collect($method->getAttributes())->isEmpty())
             ->filter(fn (ReflectionMethod $method) => collect($method->getAttributes())->filter(fn (ReflectionAttribute $attribute) => $attribute->getName() === Migrate::class));
 
-        if (!$methods->isEmpty()) {
+        if (! $methods->isEmpty()) {
             $migrations = Migration::get();
 
             $methods->each(function (ReflectionMethod $method) use ($class, $migrations) {
