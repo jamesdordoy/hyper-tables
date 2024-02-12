@@ -30,6 +30,8 @@ return [
 
 ### Note: This package makes use of Laravel's migration table to keep track of already run migrations. So before attemping to migrate your HyperTables. Please run `php artisan migrate` to create this table. If your happy with Laravel's default users table then you can leave the existing migration or delete it and use a HyperTable.
 
+### Note: HyperTables dosent store a migration reference for creating tables as that table has either been created or it hasnt and this is handled.
+
 ```php
 <?php
 

@@ -67,9 +67,11 @@ abstract class Table
         return $this->model;
     }
 
-    public function hasMigrationRun($migrationName)
+    public function hasMigrationRun($migrationName, $migrations = null)
     {
-        $migrations = Migration::get();
+        if (is_null($migrations)) {
+            $migrations = Migration::get();
+        }
 
         return ! $migrations->filter(fn (Migration $migration) => $migration->migration === $migrationName)->isEmpty();
     }
