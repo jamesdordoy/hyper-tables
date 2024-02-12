@@ -2,7 +2,7 @@
 
 ## (Proof of concept package)
 
-Ever wanted to store your migrations for a single table as a class and be able to read through the changes sequentially? This package allows you to create model table classes to manage your migrations. The package still uses Laravels Schema classes and migrations table to keep track of differences so no changes are needed.
+Ever wanted to store your migrations for a single table as a class and be able to read through all of the changes? This package allows you to create model table classes to manage your migrations. The package still uses Laravels Schema classes and migrations table to keep track of differences so no changes are needed.
 
 This can help keep your model migration logic from becoming hard to find in what a normal migrations folder can look like on a larger project (The dumping ground!).
 

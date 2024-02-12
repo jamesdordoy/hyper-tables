@@ -6,6 +6,7 @@ use Error;
 use Exception;
 use Illuminate\Console\Command;
 use JamesDordoy\HyperTables\ModelFinder;
+use JamesDordoy\HyperTables\Models\Table;
 
 class HyperTablesMigrateCommand extends Command
 {
@@ -20,9 +21,9 @@ class HyperTablesMigrateCommand extends Command
         ModelFinder::all(config('hyper-tables.table_path'))
             ->each(function (string $namespace) {
                 $outstandingMigrations = $namespace::getOutstandingMigrations();
+                $outstandingMigrations->each(fn (string $migration) => $this->comment(sprintf('Running migration: %s', $migration)));
 
-                if (! $outstandingMigrations->isEmpty()) {
-                    $outstandingMigrations->each(fn ($migration) => $this->comment(sprintf('Running migration: %s', $migration)));
+                if (! $outstandingMigrations->isEmpty() && !$this->migrationsRun) {
                     $this->migrationsRun = true;
                 }
             })
@@ -31,6 +32,15 @@ class HyperTablesMigrateCommand extends Command
                     return new $namespace;
                 } catch (Exception|Error) {
                     return null;
+                }
+            })
+            ->each(function (Table $table) {
+                $table->createOrUpdate();
+            })
+            ->map(function (Table $table) {
+                if ($table->getJustCreated()) {
+                    $this->comment(sprintf('Created Table: %s', $table->getModel()->getTable()));
+                    $this->migrationsRun = true;
                 }
             });
 

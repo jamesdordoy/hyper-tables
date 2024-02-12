@@ -6,31 +6,70 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 use JamesDordoy\HyperTables\Attributes\Migrate;
+use JamesDordoy\HyperTables\Contracts\FollowsSchema;
 use ReflectionAttribute;
 use ReflectionClass;
 use ReflectionMethod;
 
-abstract class Table
+abstract class Table implements FollowsSchema
 {
     protected $table;
 
     protected $model;
 
+    protected bool $justCreated = false;
+
+    protected $migrations;
+
     public function __construct(protected string $modelClass)
     {
         $this->model = resolve($modelClass);
-
-        if (! Schema::hasTable($this->model->getTable())) {
-            \Log::info('hit datatbase for creates');
-            Schema::create($this->model->getTable(), fn (Blueprint $table) => $this->up($this->table = $table));
-            Schema::table($this->model->getTable(), fn (Blueprint $table) => $this->run($this->table = $table));
-        } else {
-            \Log::info('hit datatbase for edits');
-            Schema::table($this->model->getTable(), fn (Blueprint $table) => $this->run($this->table = $table));
-        }
     }
 
     abstract public function up(): void;
+
+    public function createOrUpdate()
+    {
+        if (! $this->isCreated()) {
+            $this->create();
+        } else {
+            $this->table();
+        }
+    }
+
+    public function create()
+    {
+        Schema::create($this->model->getTable(), fn (Blueprint $table) => $this->up($this->table = $table));
+
+        $this->migrations = Migration::get();
+
+        $class = new ReflectionClass($this);
+        $migrationName = sprintf('%s::%s', $class->name, "create");
+
+        Migration::create([
+            'migration' => $migrationName,
+            'batch' => $this->migrations->last() ? $this->migrations->last()->batch + 1 : 1,
+        ]);
+
+        $this->justCreated = true;
+
+        $this->table();
+    }
+
+    public function table()
+    {
+        Schema::table($this->model->getTable(), fn (Blueprint $table) => $this->run($this->table = $table));
+    }
+
+    public function drop(): void
+    {
+        Schema::drop($this->model->getTable());
+    }
+
+    public function rename(string $from, string $to)
+    {
+        Schema::rename($from, $to);
+    }
 
     public function run(): void
     {
@@ -116,5 +155,17 @@ abstract class Table
             ->filter(fn (ReflectionMethod $method) => collect($method->getAttributes())->filter(fn (ReflectionAttribute $attribute) => $attribute->getName() === Migrate::class));
 
         return $methods;
+    }
+
+    public function getJustCreated(): bool
+    {
+        return $this->justCreated;
+    }
+
+    public function isCreated()
+    {
+        $class = new ReflectionClass(get_called_class());
+        
+        return $this->hasMigrationRun(sprintf('%s::%s', $class->name, 'create'));
     }
 }
