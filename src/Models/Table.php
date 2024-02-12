@@ -71,7 +71,7 @@ abstract class Table
     {
         $migrations = Migration::get();
 
-        return ! $migrations->filter(fn (Migration $migration) => $migration->migration === $migrationName)->isEmpty();          
+        return ! $migrations->filter(fn (Migration $migration) => $migration->migration === $migrationName)->isEmpty();
     }
 
     public function hasMigrations()
@@ -83,21 +83,21 @@ abstract class Table
         $methods = collect($methods)
             ->filter(fn (ReflectionMethod $method) => ! collect($method->getAttributes())->isEmpty())
             ->filter(fn (ReflectionMethod $method) => collect($method->getAttributes())->filter(fn (ReflectionAttribute $attribute) => $attribute->getName() === Migrate::class));
-        
+
         if (! $methods->isEmpty()) {
-                $migrations = Migration::get();
-    
-                $methods->each(function (ReflectionMethod $method) use ($class, $migrations) {
-    
-                    $migrationName = sprintf('%s::%s', $class->name, $method->name);
-    
-                    if ($migrations->filter(fn (Migration $migration) => $migration->migration === $migrationName)->isEmpty()) {
-    
-                       return true;
-                    } 
-                    
-                    return false;
-                });
-            }
+            $migrations = Migration::get();
+
+            $methods->each(function (ReflectionMethod $method) use ($class, $migrations) {
+
+                $migrationName = sprintf('%s::%s', $class->name, $method->name);
+
+                if ($migrations->filter(fn (Migration $migration) => $migration->migration === $migrationName)->isEmpty()) {
+
+                    return true;
+                }
+
+                return false;
+            });
+        }
     }
 }
