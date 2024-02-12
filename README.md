@@ -1,7 +1,12 @@
-# This is my package hyper-tables
+# HyperTables
 
+## (Proof of concept package)
 
-This is where your description should go. Limit it to a paragraph or two. Consider adding a small example.
+Ever wanted to store your migrations for a single table as a class and be able to read through the changes sequentially? This package allows you to create model table classes to manage your migrations. The package still uses Laravels Schema classes and migrations table to keep track of differences so no changes are needed.
+
+This can help keep your model migration logic from becoming hard to find in what a normal migrations folder can look like on a larger project (The dumping ground!).
+
+`php artisan migrate` still works in the same way so the package wont cause issues when trying to migrate other 3rd party packages. 
 
 ## Installation
 
