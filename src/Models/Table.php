@@ -34,13 +34,9 @@ abstract class Table
 
     public function run(): void
     {
+        // $migrations = Migration::get(); -- Look at caching/storing these on the class as they as going to get loaded more than once....
         $class = new ReflectionClass($this);
-
-        $methods = $class->getMethods(ReflectionMethod::IS_PUBLIC);
-
-        $methods = collect($methods)
-            ->filter(fn (ReflectionMethod $method) => ! collect($method->getAttributes())->isEmpty())
-            ->filter(fn (ReflectionMethod $method) => collect($method->getAttributes())->filter(fn (ReflectionAttribute $attribute) => $attribute->getName() === Migrate::class));
+        $methods = self::getMigratiableMethods();
 
         if (! $methods->isEmpty()) {
             $migrations = Migration::get();
@@ -67,6 +63,17 @@ abstract class Table
         return $this->model;
     }
 
+    public static function getOutstandingMigrations()
+    {
+        $class = new ReflectionClass(get_called_class());
+        $methods = self::getMigratiableMethods();
+        $migrations = Migration::get();
+
+        $methodNames = $methods->map(fn (ReflectionMethod $method) => sprintf('%s::%s', $class->name, $method->name));
+
+        return $methodNames->diff($migrations->pluck('migration'));
+    }
+
     public function hasMigrationRun($migrationName, $migrations = null)
     {
         if (is_null($migrations)) {
@@ -79,12 +86,7 @@ abstract class Table
     public function hasMigrations()
     {
         $class = new ReflectionClass($this);
-
-        $methods = $class->getMethods(ReflectionMethod::IS_PUBLIC);
-
-        $methods = collect($methods)
-            ->filter(fn (ReflectionMethod $method) => ! collect($method->getAttributes())->isEmpty())
-            ->filter(fn (ReflectionMethod $method) => collect($method->getAttributes())->filter(fn (ReflectionAttribute $attribute) => $attribute->getName() === Migrate::class));
+        $methods = self::getMigratiableMethods();
 
         if (! $methods->isEmpty()) {
             $migrations = Migration::get();
@@ -97,9 +99,22 @@ abstract class Table
 
                     return true;
                 }
-
-                return false;
             });
+
+            return false;
         }
+    }
+
+    protected static function getMigratiableMethods()
+    {
+        $class = new ReflectionClass(get_called_class());
+
+        $methods = $class->getMethods(ReflectionMethod::IS_PUBLIC);
+
+        $methods = collect($methods)
+            ->filter(fn (ReflectionMethod $method) => ! collect($method->getAttributes())->isEmpty())
+            ->filter(fn (ReflectionMethod $method) => collect($method->getAttributes())->filter(fn (ReflectionAttribute $attribute) => $attribute->getName() === Migrate::class));
+
+        return $methods;
     }
 }

@@ -14,19 +14,31 @@ class HyperTablesMigrateCommand extends Command
 
     public $description = 'Run any migrations across your HyperTables';
 
+    protected bool $migrationsRun = false;
+
     public function handle(): int
     {
-        // in this class locally cache the run migration messages and then display them if there are migrations running..
-        $models = ModelFinder::all(config('hyper-tables.table_path'))
+        ModelFinder::all(config('hyper-tables.table_path'))
+            ->each(function (string $namespace) {
+                $outstandingMigrations = $namespace::getOutstandingMigrations();
+
+                if (!$outstandingMigrations->isEmpty()) {
+                    $outstandingMigrations->each(fn($migration) => $this->comment(sprintf("Running migration: %s", $migration)));
+                    $this->migrationsRun = true;
+                }
+            })
             ->map(function (string $namespace) {
                 try {
                     return new $namespace;
                 } catch (Exception|Error) {
                     return null;
                 }
-            })
-            ->map(fn (Table $table) => $this->comment(sprintf('Run migration on table: %s', $table->getModel()->getTable())));
+            });
 
+        if (! $this->migrationsRun) {
+            $this->info('Nothing to migrate.');
+        }
+        
         return self::SUCCESS;
     }
 }
