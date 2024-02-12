@@ -39,7 +39,7 @@ abstract class Table implements FollowsSchema
         }
     }
 
-    public function create()
+    public function create(): void
     {
         Schema::create($this->model->getTable(), fn (Blueprint $table) => $this->up($this->table = $table));
 
@@ -56,7 +56,7 @@ abstract class Table implements FollowsSchema
         $this->table();
     }
 
-    public function table()
+    public function table(): void
     {
         Schema::table($this->model->getTable(), fn (Blueprint $table) => $this->run($this->table = $table));
     }
@@ -66,7 +66,7 @@ abstract class Table implements FollowsSchema
         Schema::drop($this->model->getTable());
     }
 
-    public function rename(string $from, string $to)
+    public function rename(string $from, string $to): void
     {
         Schema::rename($from, $to);
     }
@@ -100,17 +100,6 @@ abstract class Table implements FollowsSchema
         return $this->model;
     }
 
-    public static function getOutstandingMigrations()
-    {
-        $class = new ReflectionClass(get_called_class());
-        $methods = self::getMigratiableMethods();
-        $migrations = Migration::get();
-
-        $methodNames = $methods->map(fn (ReflectionMethod $method) => sprintf('%s::%s', $class->name, $method->name));
-
-        return $methodNames->diff($migrations->pluck('migration'));
-    }
-
     public function hasMigrationRun($migrationName)
     {
         if (is_null($this->migrations)) {
@@ -141,6 +130,18 @@ abstract class Table implements FollowsSchema
         }
     }
 
+    public function getJustCreated(): bool
+    {
+        return $this->justCreated;
+    }
+
+    public function isCreated()
+    {
+        $class = new ReflectionClass(get_called_class());
+
+        return $this->hasMigrationRun(sprintf('%s::%s', $class->name, 'create'));
+    }
+
     protected static function getMigratiableMethods()
     {
         $class = new ReflectionClass(get_called_class());
@@ -154,15 +155,14 @@ abstract class Table implements FollowsSchema
         return $methods;
     }
 
-    public function getJustCreated(): bool
-    {
-        return $this->justCreated;
-    }
-
-    public function isCreated()
+    public static function getOutstandingMigrations()
     {
         $class = new ReflectionClass(get_called_class());
+        $methods = self::getMigratiableMethods();
+        $migrations = Migration::get();
 
-        return $this->hasMigrationRun(sprintf('%s::%s', $class->name, 'create'));
+        $methodNames = $methods->map(fn (ReflectionMethod $method) => sprintf('%s::%s', $class->name, $method->name));
+
+        return $methodNames->diff($migrations->pluck('migration'));
     }
 }
